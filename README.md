@@ -2,23 +2,38 @@
 
 > **Autonomous, policy-governed revenue recovery engine for failed payments and recurring subscription charges with auditable execution, deterministic guardrails, and verified revenue tracking.**
 > 
-> *Track: AI Revenue Recovery | Razorpay AI Buildathon 2026*
+> *Razorpay AI Buildathon 2026 — Track 03: AI Revenue Recovery*
 
 ---
 
-## 1. Important Runtime Notice (Google AI Studio Preview vs. Exported Environment)
+## 1. Problem Statement
 
-> [!IMPORTANT]
-> **Google AI Studio Runtime Limitation**:
-> The standard Google AI Studio container runs a Node.js/TypeScript frontend harness and does not have the pre-installed Python package management environment (`pip`, `uvicorn`, `langgraph`, `fastapi`). 
-> 
-> The backend architecture is strictly authored in **Python 3.11** using **FastAPI**, **Pydantic**, **LangGraph**, and **SQLAlchemy**. It is designed to be exported and run in any standard Python 3.11+ environment or container.
+Payment failures in digital commerce and subscription businesses represent a massive leak in gross merchandise value (GMV). When a transaction fails, traditional recovery approaches fail merchants in two extreme ways:
+1. **Dumb, Static Retries**: Blindly re-attempting failed charges on fixed schedules exhausts issuer attempt limits, triggers bank fraud algorithms, damages merchant standing, and wastes transaction fees on permanent errors (e.g. invalid mandate, expired card).
+2. **Abandoned Carts & Manual Operations**: Merchants lack automated, compliant mechanisms to route recoverable failures to customer payment links or mandate updates, resulting in high involuntary churn.
 
 ---
 
-## 2. Core Architecture & Workflow
+## 2. Why This Matters
 
-The orchestrator enforces strict separation between **AI reasoning** (bounded diagnosis, candidate strategy suggestion) and **deterministic governance** (hard policy engine vetoes, stopping rules, retry caps, escalation).
+- **Involuntary Churn**: Over 30% of subscription cancellations are caused by unhandled transient payment failures, not intentional customer cancellations.
+- **Regulatory Guardrails (RBI / AFA Mandates)**: In India, auto-debit regulations disallow arbitrary server-side card debits without Additional Factor Authentication (AFA/3DS). An orchestrator must intelligently navigate regulatory reality rather than pretending unsupported direct debit APIs exist.
+- **Financial Safety**: Autonomous AI agents must never execute arbitrary or unvetted financial operations. Strategy recommendation must remain strictly separated from deterministic policy authorization.
+
+---
+
+## 3. Solution Overview
+
+The **AI Revenue Recovery Orchestrator** is a production-minded system that combines:
+- **Bounded Diagnostic AI**: Sanitized error categorization using Gemini (`gemini-2.5-flash`) to understand root causes without exposing sensitive customer PII or credentials.
+- **Deterministic Strategy Scoring**: Multi-signal scoring weighting failure category, attempt history, transaction value, and customer tier.
+- **Deterministic Policy Engine**: Hardcoded merchant safety guardrails (retry caps, cooldowns, amount ceilings, non-retryable blocks) with absolute veto power (`ALLOW`, `BLOCK`, `DOWNGRADE`, `ESCALATE`, `STOP`).
+- **Idempotent Execution**: Razorpay Test Mode integration for hosted Payment Links, subscription retry lifecycles, and customer payment method update requests.
+- **Verified Financial Accounting**: Revenue is credited **only** upon independent gateway settlement verification (`PAID` / `CAPTURED`).
+
+---
+
+## 4. System Architecture
 
 ```
                       [ Failed Payment / Subscription Event ]
@@ -26,9 +41,9 @@ The orchestrator enforces strict separation between **AI reasoning** (bounded di
                                          ▼
                                [ Ingestion Layer ]
                                          ↓
-                                      Evidence
+                                      Evidence (PII Scrubbed)
                                          ↓
-                                     Diagnosis   ◄─── (Bounded LLM / Categorizer)
+                                     Diagnosis   ◄─── Bounded Gemini LLM (or Heuristic Fallback)
                                          ↓
                                Candidate Strategies
                                          ↓
@@ -46,7 +61,7 @@ The orchestrator enforces strict separation between **AI reasoning** (bounded di
                         │                                 │
                         ▼                                 │
               [ Verification Layer ]                      │
-             (Re-verify Payment Status)                   │
+             (Re-verify Gateway Status)                   │
                         │                                 │
                   ┌─────┴─────┐                           │
                   ▼           ▼                           │
@@ -66,144 +81,114 @@ The orchestrator enforces strict separation between **AI reasoning** (bounded di
 
 ---
 
-## 3. Scope & Locked Action Space
+## 5. Headline Benchmark Results
 
-The scope is strictly locked to two workflows:
+*Measured across a canonical 60-case deterministic synthetic evaluation dataset (`seed=42`) with zero live API quota consumption:*
 
-1. **Primary Workflow: Failed Payment Recovery**
-   - Allowed Actions: `SMART_RETRY`, `PAYMENT_LINK`, `HUMAN_ESCALATION`, `STOP`
-2. **Secondary Workflow: Recurring Subscription Payment Recovery**
-   - Allowed Actions: `SUBSCRIPTION_RETRY`, `UPDATE_PAYMENT_METHOD`, `HUMAN_ESCALATION`, `STOP`
+| Metric | NO_ACTION Baseline | RETRY_ONLY Baseline | AI REVENUE RECOVERY ORCHESTRATOR | Net Uplift vs Retry Only |
+|---|---|---|---|---|
+| **Evaluated Cases** | `60` | `60` | `60` | — |
+| **Total Revenue at Risk** | `₹5,21,769.70` | `₹5,21,769.70` | `₹5,21,769.70` | — |
+| **Verified Recovered Revenue** | `₹0.00` | `₹51,765.46` | **₹1,12,529.40** | **+₹60,763.94** |
+| **Revenue Recovery Rate** | `0.0%` | `9.9%` | **21.6%** | **+117.4% lift** |
+| **Case Recovery Rate** | `0.0%` | `33.3%` (20/60) | **53.3%** (32/60) | **+60.0% case lift** |
+| **Recovery Attempts** | `0` | `26` | **52** | — |
+| **Successful Dispatches** | `0` | `20` | **44** | — |
+| **Human Escalations** | `0` | `0` | **16** | — |
+| **Policy Violations** | `0` | `0` | **0** (100% Authorized)| — |
+
+> **Note on Data Provenance**: Benchmark values are derived from an immutable synthetic dataset (`data/evaluations/datasets/recovery_dataset_v1_seed42.json`, SHA-256: `741535b89fd6a558335268d8174eb5a9c6b2e4295fdadd4f0dd457d31724ae5c`). See [`docs/DATASET_AND_REPRODUCIBILITY.md`](docs/DATASET_AND_REPRODUCIBILITY.md) for full details.
 
 ---
 
-## 4. Setup & Running the Backend
+## 6. Locked Scope & Supported Recovery Actions
+
+### Primary Workflow: One-Time Failed Payment Recovery
+- `SMART_RETRY`: Intelligent scheduled retry within policy cooldown.
+- `PAYMENT_LINK`: Generates hosted Razorpay Payment Link dispatched to customer.
+- `HUMAN_ESCALATION`: Routes high-value or ambiguous cases to human operations queue.
+- `STOP`: Halts recovery permanently (terminal state, zero further actions).
+
+### Secondary Workflow: Recurring Subscription Payment Recovery
+- `SUBSCRIPTION_RETRY`: Compliant recurring invoice retry observing mandate status.
+- `UPDATE_PAYMENT_METHOD`: Issues customer notification link to update expired/invalid mandate.
+- `HUMAN_ESCALATION`: Routes high-value subscription failures to merchant relationship team.
+- `STOP`: Halts subscription retry lifecycle permanently.
+
+---
+
+## 7. Local Setup & Quickstart
 
 ### Prerequisites
-- Python 3.11 or higher
-- PostgreSQL (or local SQLite for development testing)
-- A valid Google Gemini API key (from [Google AI Studio](https://aistudio.google.com/))
-- Razorpay Test Mode API keys (optional; mocked responses used if not provided)
+- Python 3.11+
+- Node.js v20+ and npm
+- Valid Razorpay Test Mode keys (optional; mocked test mode operates automatically)
+- Gemini API Key (optional; deterministic heuristic fallback operates automatically if unset)
 
-### Step 1: Clone or Export the Repository
+### 1. Backend Setup
 ```bash
-# In your terminal
-cd backend
-```
+# Activate virtual environment
+source .venv/bin/activate
 
-### Step 2: Create and Activate a Python Virtual Environment
+# Install backend dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+
+# Start FastAPI server
+uvicorn backend.app.main:app --reload --port 8000
+```
+API Documentation will be live at `http://127.0.0.1:8000/docs`.
+
+### 2. Frontend Setup
 ```bash
-# Linux / macOS
-python3 -m venv venv
-source venv/bin/activate
+# Install frontend dependencies
+npm install
 
-# Windows (Command Prompt)
-python -m venv venv
-venv\Scripts\activate
+# Start Vite development server
+npm run dev
 ```
-
-### Step 3: Install Required Dependencies
-```bash
-pip install -r ../requirements.txt
-```
-
-### Step 4: Configure Environment Variables
-```bash
-cp ../.env.example .env
-# Edit .env and supply your GEMINI_API_KEY and RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET
-```
-
-### Step 5: Run Database Migrations (Optional for dev)
-```bash
-# If using PostgreSQL:
-alembic upgrade head
-```
-
-### Step 6: Start the FastAPI Server
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-The interactive OpenAPI documentation will be accessible at:
-- **Swagger UI**: `http://localhost:8000/docs`
-- **ReDoc**: `http://localhost:8000/redoc`
+Dashboard will be live at `http://127.0.0.1:3000`.
 
 ---
 
-## 5. Running the Test Suite
-
-The test suite validates the deterministic Policy Engine, Strategy Scoring, Prompt-Injection defenses, and End-to-End Recovery loops.
+## 8. Verification & Test Suites
 
 ```bash
-# Run all tests with pytest
-pytest -v
+# Run backend test suite (119 tests passing)
+.venv/bin/pytest backend/tests/ -v
 
-# Run only the deterministic policy engine test suite
-pytest tests/test_policy_engine.py -v
+# Run frontend security, policy, and invariant suite (24 tests passing)
+npm test
 
-# Run with test coverage report
-pytest --cov=app tests/
+# Run TypeScript typecheck
+npm run lint
+
+# Run production build
+npm run build
 ```
 
 ---
 
-## 6. Directory Structure
+## 9. Local Setup & Troubleshooting
 
-```
-backend/
-├── app/
-│   ├── main.py                  # FastAPI Application Entry & Route Mounts
-│   ├── config.py                # Pydantic Settings & Environment Loader
-│   ├── models/                  # SQLAlchemy Relational Models
-│   │   ├── __init__.py
-│   │   ├── case.py              # RecoveryCase DB Model
-│   │   ├── action.py            # ActionExecution DB Model
-│   │   ├── policy.py            # PolicyEvaluation DB Model
-│   │   └── audit.py             # AuditLog DB Model
-│   ├── schemas/                 # Pydantic Schemas & Domain Enums
-│   │   ├── __init__.py
-│   │   ├── enums.py             # CaseType, RecoveryStrategy, FailureCategory, CaseStatus
-│   │   ├── case.py              # RecoveryCase Ingestion & Response Schemas
-│   │   ├── policy.py            # PolicyConfig, PolicyCheckResult Schemas
-│   │   ├── action.py            # ActionExecutionRecord, VerificationRecord Schemas
-│   │   └── metrics.py           # BatchMetrics & Evaluation Schemas
-│   ├── repositories/            # Typed Repository Abstractions (PostgreSQL / Memory)
-│   │   ├── __init__.py
-│   │   ├── case_repository.py
-│   │   ├── audit_repository.py
-│   │   └── policy_repository.py
-│   ├── policies/                # 100% Deterministic Policy Engine (Pol-01 to Pol-08)
-│   │   ├── __init__.py
-│   │   ├── engine.py            # Deterministic PolicyEngine Class
-│   │   └── rules.py             # Standalone Pure Rule Evaluators
-│   ├── services/                # Business & External Integrations
-│   │   ├── __init__.py
-│   │   ├── decision_engine.py   # Multi-signal Mathematical Strategy Scoring
-│   │   ├── diagnosis_service.py # Root-cause Classifier & Bounded Gemini LLM
-│   │   ├── razorpay_service.py  # Razorpay Test Mode Client & Mock Runner
-│   │   └── verification.py      # Gateway Status Reconciliation & Provenance Tagger
-│   ├── agents/                  # LangGraph Stateful Recovery Workflow
-│   │   ├── __init__.py
-│   │   ├── state.py             # RecoveryGraphState Definition
-│   │   └── workflow.py          # StateGraph (Detect->Diagnose->Decide->Guard->Act->Verify)
-│   ├── audit/                   # Append-Only Audit Trail Service
-│   │   ├── __init__.py
-│   │   └── logger.py
-│   ├── evaluation/              # Batch Benchmark & Baseline Comparison Engine
-│   │   ├── __init__.py
-│   │   ├── dataset.py           # 50+ Reproducible Synthetic Failure Batch
-│   │   └── baselines.py         # No-Action vs Retry-Only vs Orchestrator
-│   └── api/                     # FastAPI Route Controllers
-│       ├── __init__.py
-│       ├── cases.py             # Case CRUD & Single-Case Processing
-│       ├── batch.py             # Batch Ingestion & Benchmark Runner
-│       ├── webhooks.py          # Razorpay Idempotent Webhook Handler
-│       └── metrics.py           # Metrics & Audit Trail Endpoints
-└── tests/                       # Pytest Test Suite
-    ├── __init__.py
-    ├── conftest.py              # Pytest Fixtures & Test Data
-    ├── test_policy_engine.py    # Policy Engine Isolation Tests
-    ├── test_scoring.py          # Decision Scoring Determinism Tests
-    ├── test_prompt_injection.py # Security & LLM Prompt Injection Tests
-    └── test_orchestrator.py     # End-to-End Closed Loop Integration Tests
-```
+- **Google AI Studio Environment Notice**: When exporting or running outside Google AI Studio, ensure your local Python environment has packages from `requirements.txt` installed.
+- **SQLite Fallback**: If `DATABASE_URL` is omitted, the application creates a local SQLite database (`revenue_recovery.db`). For production, supply a PostgreSQL connection URL.
+- **Gemini Fallback**: If `GEMINI_API_KEY` is omitted, the orchestrator automatically uses deterministic error categorization with zero disruption to the workflow.
+
+---
+
+## 10. Documentation Index
+
+- [`docs/DATASET_AND_REPRODUCIBILITY.md`](docs/DATASET_AND_REPRODUCIBILITY.md): Canonical dataset specification, checksum, and reproduction instructions.
+- [`docs/KNOWN_LIMITATIONS.md`](docs/KNOWN_LIMITATIONS.md): Transparent engineering constraints and production roadmap.
+- [`docs/FEATURE_ENDPOINT_MATRIX.md`](docs/FEATURE_ENDPOINT_MATRIX.md): Complete mapping of UI controls to API endpoints.
+- [`docs/FINAL_SYSTEM_QA_REPORT.md`](docs/FINAL_SYSTEM_QA_REPORT.md): Comprehensive system QA and validation report.
+- [`docs/EVALUATOR_REVIEW.md`](docs/EVALUATOR_REVIEW.md): Objective architectural assessment.
+
+---
+
+## 11. License
+
+MIT License. Copyright (c) 2026 Sreeram Banoth. See [`LICENSE`](LICENSE) for details.
