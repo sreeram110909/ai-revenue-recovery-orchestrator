@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+build/
+dist/
+coverage/
+
+# OS & Logs
+.DS_Store
+*.log
+*.zip
+
+# Environment & Secrets
+.env*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# IDE / System
+.agents/

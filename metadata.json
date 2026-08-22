@@ -1,0 +1,6 @@
+{
+  "name": "AI Revenue Recovery Orchestrator",
+  "description": "Autonomous policy-governed revenue recovery engine for failed payments and recurring subscription charges with auditable execution and verified revenue tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
