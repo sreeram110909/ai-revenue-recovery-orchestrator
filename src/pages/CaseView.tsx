@@ -6,7 +6,7 @@ import { DecisionTimeline } from '../components/DecisionTimeline';
 import { PolicyPanel } from '../components/PolicyPanel';
 import { StrategyScoreTable } from '../components/StrategyScoreTable';
 import { AuditTimeline } from '../components/AuditTimeline';
-import { RefreshCw, ArrowLeft, Play, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, ArrowLeft, Play, ChevronDown, ChevronUp, CheckCircle2, Check } from 'lucide-react';
 
 interface CaseViewProps {
   caseId: string | null;
@@ -23,6 +23,7 @@ export const CaseView: React.FC<CaseViewProps> = ({
   const { cases } = useCases({ limit: 100 });
   const [showTechnicalDetails, setShowTechnicalDetails] = useState<boolean>(false);
   const [showFullAuditLog, setShowFullAuditLog] = useState<boolean>(false);
+  const [processSuccessMessage, setProcessSuccessMessage] = useState<string | null>(null);
 
   const formatCurrency = (val?: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -33,8 +34,14 @@ export const CaseView: React.FC<CaseViewProps> = ({
   };
 
   const handleProcessWorkflow = async () => {
+    setProcessSuccessMessage(null);
     try {
-      await processCase();
+      const res = await processCase();
+      if (res) {
+        const action = res.case.executed_action?.action_type || res.case.policy_evaluation?.approved_strategy || 'Action';
+        const outcome = res.case.policy_evaluation?.outcome || 'PROCESSED';
+        setProcessSuccessMessage(`LangGraph workflow executed: Policy ${outcome} (${action}). Audit trail updated.`);
+      }
     } catch {
       // handled in hook
     }
@@ -182,7 +189,10 @@ export const CaseView: React.FC<CaseViewProps> = ({
           {cases.length > 0 && (
             <select
               value={caseData.id}
-              onChange={(e) => onSelectCase(e.target.value)}
+              onChange={(e) => {
+                setProcessSuccessMessage(null);
+                onSelectCase(e.target.value);
+              }}
               className="rounded border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs font-mono text-slate-300 focus:outline-none cursor-pointer"
             >
               {cases.map((c) => (
@@ -221,6 +231,22 @@ export const CaseView: React.FC<CaseViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Success Notification Banner */}
+      {processSuccessMessage && (
+        <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-300 flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{processSuccessMessage}</span>
+          </div>
+          <button
+            onClick={() => setProcessSuccessMessage(null)}
+            className="text-[11px] text-emerald-400 hover:text-white cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* SECTION 1: WHAT HAPPENED? (Merchant Plain Language) */}
       <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6 space-y-4">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useMetrics } from '../hooks/useMetrics';
 import { StatusBadge } from '../components/StatusBadge';
-import { RefreshCw, ChevronDown, ChevronUp, Sliders } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronUp, Sliders, Check } from 'lucide-react';
 
 export const Evaluation: React.FC = () => {
   const { metrics, loading, running, error, refetch, runBenchmark } = useMetrics();
@@ -10,6 +10,7 @@ export const Evaluation: React.FC = () => {
   const [showConfig, setShowConfig] = useState<boolean>(false);
   const [showMetadata, setShowMetadata] = useState<boolean>(false);
   const [showCaseResults, setShowCaseResults] = useState<boolean>(false);
+  const [benchmarkNotification, setBenchmarkNotification] = useState<string | null>(null);
 
   const formatCurrency = (val?: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -20,9 +21,25 @@ export const Evaluation: React.FC = () => {
   };
 
   const handleRunCustomBenchmark = async () => {
+    setBenchmarkNotification(null);
     try {
-      await runBenchmark({ seed, count, dataset_version: 'v1.0' });
+      const res = await runBenchmark({ seed, count, dataset_version: 'v1.0' });
       setShowConfig(false);
+      if (res) {
+        setBenchmarkNotification(`Benchmark completed: ${count} cases evaluated (Seed: ${seed}, Batch: ${res.metadata.batch_id}).`);
+      }
+    } catch {
+      // handled in hook
+    }
+  };
+
+  const handleRerunStandardBenchmark = async () => {
+    setBenchmarkNotification(null);
+    try {
+      const res = await runBenchmark({ seed: 42, count: 60, dataset_version: 'v1.0' });
+      if (res) {
+        setBenchmarkNotification(`Benchmark completed: 60 cases evaluated across 3 baselines (Batch: ${res.metadata.batch_id}).`);
+      }
     } catch {
       // handled in hook
     }
@@ -79,7 +96,7 @@ export const Evaluation: React.FC = () => {
             {showConfig ? 'Hide config' : 'Configure benchmark'}
           </button>
           <button
-            onClick={() => runBenchmark({ seed: 42, count: 60, dataset_version: 'v1.0' })}
+            onClick={handleRerunStandardBenchmark}
             disabled={running}
             className="inline-flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700 disabled:opacity-50 transition-colors cursor-pointer"
           >
@@ -88,6 +105,22 @@ export const Evaluation: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Benchmark Success Banner */}
+      {benchmarkNotification && (
+        <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-300 flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{benchmarkNotification}</span>
+          </div>
+          <button
+            onClick={() => setBenchmarkNotification(null)}
+            className="text-[11px] text-emerald-400 hover:text-white cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Config Drawer */}
       {showConfig && (
