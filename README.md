@@ -136,9 +136,11 @@ pip install -r requirements.txt
 # Configure environment
 cp .env.example .env
 
-# Start FastAPI server
-uvicorn backend.app.main:app --reload --port 8000
+# Start FastAPI server (from repo root)
+PYTHONPATH=backend uvicorn app.main:app --reload --port 8000
 ```
+> **Automatic Demo Data Seeding**: On initial startup from a clean clone, the backend automatically and idempotently initializes the database with **62 canonical cases** (2 named demo cases: `case_api_001` & `case_api_002`, plus the 60 canonical benchmark cases `synth_v1.0_42_001` through `synth_v1.0_42_060`). No manual seeding step is required — the **Cases** table and **Dashboard** are immediately browsable and interactive out-of-the-box.
+
 API Documentation will be live at `http://127.0.0.1:8000/docs`.
 
 ### 2. Frontend Setup
@@ -156,7 +158,7 @@ Dashboard will be live at `http://127.0.0.1:3000`.
 ## 8. Verification & Test Suites
 
 ```bash
-# Run backend test suite (119 tests passing)
+# Run backend test suite (125 tests passing)
 .venv/bin/pytest backend/tests/ -v
 
 # Run frontend security, policy, and invariant suite (24 tests passing)
@@ -173,7 +175,7 @@ npm run build
 
 ## 9. Local Setup & Troubleshooting
 
-- **Google AI Studio Environment Notice**: When exporting or running outside Google AI Studio, ensure your local Python environment has packages from `requirements.txt` installed.
+- **Automatic Startup Seeding**: When starting with a fresh SQLite database, the backend automatically seeds all 62 cases with clean initial `CASE_INGESTED` audit logs. Subsequent restarts or `--reload` triggers preserve all processed states without duplicate entries.
 - **SQLite Fallback**: If `DATABASE_URL` is omitted, the application creates a local SQLite database (`revenue_recovery.db`). For production, supply a PostgreSQL connection URL.
 - **Gemini Fallback**: If `GEMINI_API_KEY` is omitted, the orchestrator automatically uses deterministic error categorization with zero disruption to the workflow.
 

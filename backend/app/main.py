@@ -43,6 +43,19 @@ async def lifespan(app: FastAPI):
     SessionFactory = get_session_factory(engine)
     create_tables(engine)
 
+    # Automatically and idempotently seed canonical demo & benchmark cases on fresh deployment
+    try:
+        session = SessionFactory()
+        try:
+            from .services.seed_service import seed_initial_cases_if_needed
+            seeded_count = seed_initial_cases_if_needed(session)
+            if seeded_count > 0:
+                logger.info("Initialized database with %d canonical cases.", seeded_count)
+        finally:
+            session.close()
+    except Exception as e:
+        logger.error("Failed to seed initial demo cases: %s", e)
+
     if settings.is_sqlite_fallback:
         logger.warning("Running with SQLite fallback. Set DATABASE_URL for PostgreSQL.")
     else:
