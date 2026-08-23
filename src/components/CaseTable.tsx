@@ -55,7 +55,7 @@ export const CaseTable: React.FC<CaseTableProps> = ({
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
             <input
               type="text"
-              placeholder="Search by case ID, email, or failure..."
+              placeholder="Search by case ID, customer ID, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded border border-slate-800 bg-slate-950 pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-slate-600 focus:outline-none font-sans"
@@ -67,7 +67,7 @@ export const CaseTable: React.FC<CaseTableProps> = ({
               onClick={onRefresh}
               disabled={loading}
               className="p-1.5 rounded border border-slate-800 bg-slate-950 text-slate-400 hover:text-white transition-colors cursor-pointer"
-              title="Refresh"
+              title="Refresh case list"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -82,7 +82,7 @@ export const CaseTable: React.FC<CaseTableProps> = ({
           >
             <option value="ALL">All Workflows</option>
             <option value="ONE_TIME_PAYMENT">One-Time Payment</option>
-            <option value="SUBSCRIPTION_RECURRING">Subscription Recurring</option>
+            <option value="SUBSCRIPTION_RECURRING">Subscription</option>
           </select>
 
           <select
@@ -92,11 +92,11 @@ export const CaseTable: React.FC<CaseTableProps> = ({
           >
             <option value="ALL">All Issues</option>
             <option value="BANK_TIMEOUT_NETWORK">Bank Timeout</option>
-            <option value="EXPIRED_CARD_INSTRUMENT">Expired Instrument</option>
-            <option value="INSUFFICIENT_FUNDS_TRANSIENT">Insufficient Funds</option>
-            <option value="INVALID_MANDATE_SUBSCRIPTION">Invalid Mandate</option>
-            <option value="SECURITY_BLOCK_FRAUD">Security Block</option>
-            <option value="AUTHENTICATION_FAILED">Auth Failed</option>
+            <option value="EXPIRED_INSTRUMENT">Expired Instrument</option>
+            <option value="INSUFFICIENT_FUNDS">Insufficient Funds</option>
+            <option value="MANDATE_EXPIRED_INVALID">Invalid Mandate</option>
+            <option value="RISK_SECURITY_BLOCK">Security Block</option>
+            <option value="AUTHENTICATION_OTP_FAILURE">Auth Failed</option>
           </select>
 
           <select
@@ -116,11 +116,11 @@ export const CaseTable: React.FC<CaseTableProps> = ({
       </div>
 
       {/* Clean Table */}
-      <div className="rounded-lg border border-slate-800 bg-slate-900/30 overflow-hidden">
+      <div className="rounded-lg border border-slate-800 bg-slate-900/40 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-900/80 text-slate-400 text-[11px] uppercase font-sans font-medium">
+              <tr className="border-b border-slate-800 bg-slate-900/60 text-slate-400 text-[11px] uppercase font-sans font-medium">
                 <th className="px-4 py-2.5">Case</th>
                 <th className="px-4 py-2.5">Amount</th>
                 <th className="px-4 py-2.5">Issue</th>
@@ -134,6 +134,7 @@ export const CaseTable: React.FC<CaseTableProps> = ({
               {loading ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin mx-auto mb-1" />
                     Loading recovery cases...
                   </td>
                 </tr>
@@ -170,7 +171,7 @@ export const CaseTable: React.FC<CaseTableProps> = ({
                       <td className="px-4 py-2.5">
                         <StatusBadge status={c.current_status} size="sm" />
                       </td>
-                      <td className="px-4 py-2.5 font-mono text-right text-emerald-400">
+                      <td className="px-4 py-2.5 font-mono text-right text-emerald-400 font-medium">
                         {isRecovered ? formatCurrency(c.verified_recovered_amount) : '₹0.00'}
                       </td>
                     </tr>
