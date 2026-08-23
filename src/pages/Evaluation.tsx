@@ -26,7 +26,7 @@ export const Evaluation: React.FC = () => {
       const res = await runBenchmark({ seed, count, dataset_version: 'v1.0' });
       setShowConfig(false);
       if (res) {
-        setBenchmarkNotification(`Benchmark completed: ${count} cases evaluated (Seed: ${seed}, Batch: ${res.metadata.batch_id}).`);
+        setBenchmarkNotification(`Benchmark completed: ${res.metadata.total_cases} cases evaluated (Seed: ${res.metadata.random_seed}, Batch: ${res.metadata.batch_id}).`);
       }
     } catch {
       // handled in hook
@@ -38,7 +38,7 @@ export const Evaluation: React.FC = () => {
     try {
       const res = await runBenchmark({ seed: 42, count: 60, dataset_version: 'v1.0' });
       if (res) {
-        setBenchmarkNotification(`Benchmark completed: 60 cases evaluated across 3 baselines (Batch: ${res.metadata.batch_id}).`);
+        setBenchmarkNotification(`Benchmark completed: ${res.metadata.total_cases} cases evaluated across 3 baselines (Batch: ${res.metadata.batch_id}).`);
       }
     } catch {
       // handled in hook
@@ -76,6 +76,14 @@ export const Evaluation: React.FC = () => {
   const noActionMetrics = metrics.metrics['NO_ACTION'];
   const comparison = metrics.comparison_summary;
 
+  // Dynamic derivations based on active batch run metadata and metrics
+  const totalCases = orchMetrics?.total_cases || metrics.metadata?.total_cases || 60;
+  const recoveredCasesCount = Math.round((orchMetrics?.case_recovery_rate || 0) * totalCases);
+  const successfulDispatches = orchMetrics?.successful_actions || 0;
+  const caseRatePct = ((orchMetrics?.case_recovery_rate || 0) * 100).toFixed(1);
+  const dispatchesPct = totalCases > 0 ? ((successfulDispatches / totalCases) * 100).toFixed(1) : '0.0';
+  const caseResultsCount = metrics.case_results?.length || 0;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -83,7 +91,7 @@ export const Evaluation: React.FC = () => {
         <div>
           <h1 className="text-xl font-semibold text-white tracking-tight">Benchmark</h1>
           <p className="text-xs text-slate-400 mt-1">
-            60 recovery cases · Seed 42 · Synthetic evaluation
+            {metrics.metadata?.total_cases || totalCases} recovery cases · Seed {metrics.metadata?.random_seed ?? 42} · Synthetic evaluation
           </p>
         </div>
 
@@ -177,7 +185,7 @@ export const Evaluation: React.FC = () => {
             </span>
             <span>•</span>
             <span className="text-slate-300">
-              {((orchMetrics?.case_recovery_rate || 0) * 100).toFixed(1)}% case recovery
+              {((orchMetrics?.case_recovery_rate || 0) * 100).toFixed(1)}% case recovery ({recoveredCasesCount} of {totalCases} cases)
             </span>
           </div>
         </div>
@@ -250,7 +258,7 @@ export const Evaluation: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Simple Recovery Funnel */}
+        {/* Right: Dynamic Data-Driven Recovery Funnel */}
         <div className="space-y-3">
           <h2 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
             Recovery funnel
@@ -259,7 +267,7 @@ export const Evaluation: React.FC = () => {
           <div className="rounded-lg border border-slate-800 bg-slate-900/30 p-5 space-y-3.5 text-xs">
             <div className="space-y-1">
               <div className="flex justify-between text-slate-300">
-                <span>60 cases evaluated</span>
+                <span>{totalCases} cases evaluated</span>
                 <span className="font-mono text-white">100%</span>
               </div>
               <div className="h-1.5 rounded bg-slate-800 overflow-hidden">
@@ -269,21 +277,21 @@ export const Evaluation: React.FC = () => {
 
             <div className="space-y-1">
               <div className="flex justify-between text-slate-300">
-                <span>44 successful dispatches</span>
-                <span className="font-mono text-white">73.3%</span>
+                <span>{successfulDispatches} successful dispatches</span>
+                <span className="font-mono text-white">{dispatchesPct}%</span>
               </div>
               <div className="h-1.5 rounded bg-slate-800 overflow-hidden">
-                <div className="h-full bg-slate-500 rounded" style={{ width: '73.3%' }} />
+                <div className="h-full bg-slate-500 rounded transition-all duration-500" style={{ width: `${dispatchesPct}%` }} />
               </div>
             </div>
 
             <div className="space-y-1">
               <div className="flex justify-between text-slate-300">
-                <span>32 verified recoveries</span>
-                <span className="font-mono text-emerald-400 font-medium">53.3%</span>
+                <span>{recoveredCasesCount} verified recoveries</span>
+                <span className="font-mono text-emerald-400 font-medium">{caseRatePct}%</span>
               </div>
               <div className="h-1.5 rounded bg-slate-800 overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded" style={{ width: '53.3%' }} />
+                <div className="h-full bg-emerald-500 rounded transition-all duration-500" style={{ width: `${caseRatePct}%` }} />
               </div>
             </div>
 
@@ -340,50 +348,56 @@ export const Evaluation: React.FC = () => {
           className="w-full flex items-center justify-between p-4 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-900/50 transition-colors cursor-pointer font-sans"
         >
           <span>
-            {showCaseResults ? 'Hide case-level results' : `View ${metrics.case_results?.length || 180} case-level results`}
+            {showCaseResults ? 'Hide case-level results' : `View ${caseResultsCount} case-level results`}
           </span>
           {showCaseResults ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
         </button>
 
-        {showCaseResults && metrics.case_results && metrics.case_results.length > 0 && (
-          <div className="border-t border-slate-800 overflow-x-auto max-h-96">
-            <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase font-sans">
-                <tr>
-                  <th className="py-2.5 px-3">Case ID</th>
-                  <th className="py-2.5 px-3">Baseline</th>
-                  <th className="py-2.5 px-3">Workflow</th>
-                  <th className="py-2.5 px-3">Issue</th>
-                  <th className="py-2.5 px-3">Strategy</th>
-                  <th className="py-2.5 px-3">Policy</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3 text-right">Recovered</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-sans">
-                {metrics.case_results.map((cr, idx) => (
-                  <tr key={`${cr.case_id}_${cr.strategy_type}_${idx}`} className="hover:bg-slate-800/20">
-                    <td className="py-2 px-3 font-mono font-medium text-white">{cr.case_id}</td>
-                    <td className="py-2 px-3 text-slate-400 text-[11px]">
-                      {cr.strategy_type === 'AI_REVENUE_RECOVERY_ORCHESTRATOR' ? 'Orchestrator' : cr.strategy_type === 'RETRY_ONLY' ? 'Retry Only' : 'No Action'}
-                    </td>
-                    <td className="py-2 px-3 text-slate-400 text-[11px]">{cr.workflow_type === 'ONE_TIME_PAYMENT' ? 'One-Time' : 'Subscription'}</td>
-                    <td className="py-2 px-3 text-slate-300">{cr.failure_category.replace(/_/g, ' ')}</td>
-                    <td className="py-2 px-3 font-mono text-slate-300 text-[11px]">{cr.selected_strategy || '—'}</td>
-                    <td className="py-2 px-3">
-                      {cr.policy_outcome ? <StatusBadge status={cr.policy_outcome} size="sm" /> : '—'}
-                    </td>
-                    <td className="py-2 px-3">
-                      <StatusBadge status={cr.final_status} size="sm" />
-                    </td>
-                    <td className="py-2 px-3 font-mono text-right text-emerald-400">
-                      {cr.verified_recovered_amount > 0 ? formatCurrency(cr.verified_recovered_amount) : '₹0.00'}
-                    </td>
+        {showCaseResults && (
+          caseResultsCount > 0 ? (
+            <div className="border-t border-slate-800 overflow-x-auto max-h-96">
+              <table className="w-full text-left text-xs">
+                <thead className="sticky top-0 bg-slate-950 border-b border-slate-800 text-[11px] text-slate-400 uppercase font-sans">
+                  <tr>
+                    <th className="py-2.5 px-3">Case ID</th>
+                    <th className="py-2.5 px-3">Baseline</th>
+                    <th className="py-2.5 px-3">Workflow</th>
+                    <th className="py-2.5 px-3">Issue</th>
+                    <th className="py-2.5 px-3">Strategy</th>
+                    <th className="py-2.5 px-3">Policy</th>
+                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-2.5 px-3 text-right">Recovered</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-sans">
+                  {metrics.case_results.map((cr, idx) => (
+                    <tr key={`${cr.case_id}_${cr.strategy_type}_${idx}`} className="hover:bg-slate-800/20">
+                      <td className="py-2 px-3 font-mono font-medium text-white">{cr.case_id}</td>
+                      <td className="py-2 px-3 text-slate-400 text-[11px]">
+                        {cr.strategy_type === 'AI_REVENUE_RECOVERY_ORCHESTRATOR' ? 'Orchestrator' : cr.strategy_type === 'RETRY_ONLY' ? 'Retry Only' : 'No Action'}
+                      </td>
+                      <td className="py-2 px-3 text-slate-400 text-[11px]">{cr.workflow_type === 'ONE_TIME_PAYMENT' ? 'One-Time' : 'Subscription'}</td>
+                      <td className="py-2 px-3 text-slate-300">{cr.failure_category.replace(/_/g, ' ')}</td>
+                      <td className="py-2 px-3 font-mono text-slate-300 text-[11px]">{cr.selected_strategy || '—'}</td>
+                      <td className="py-2 px-3">
+                        {cr.policy_outcome ? <StatusBadge status={cr.policy_outcome} size="sm" /> : '—'}
+                      </td>
+                      <td className="py-2 px-3">
+                        <StatusBadge status={cr.final_status} size="sm" />
+                      </td>
+                      <td className="py-2 px-3 font-mono text-right text-emerald-400">
+                        {cr.verified_recovered_amount > 0 ? formatCurrency(cr.verified_recovered_amount) : '₹0.00'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="border-t border-slate-800 p-6 text-center text-xs text-slate-500 font-sans">
+              No case-level results available for this benchmark run.
+            </div>
+          )
         )}
       </div>
     </div>
