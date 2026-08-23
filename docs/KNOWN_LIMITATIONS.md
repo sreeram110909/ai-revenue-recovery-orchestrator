@@ -54,3 +54,11 @@ This document transparently records real engineering constraints, architectural 
   Gemini (`gemini-2.5-flash`) is strictly isolated to the diagnostic layer for failure classification and explanation. It does not execute actions or access payment gateway credentials.
 - **Deterministic Heuristic Fallback**:  
   When `GEMINI_API_KEY` is not provided or rate limits are encountered, the system gracefully falls back to deterministic rule-based error classification, ensuring zero downtime and 100% policy compliance.
+
+---
+
+## 7. QA Testing & Data Isolation Guidelines
+
+- **Disposable Test Fixtures for Manual Testing**:  
+  Manual and live QA tests of write endpoints (e.g. `POST /api/v1/webhooks/razorpay`) must target disposable test IDs (e.g. `qa_disposable_test_001`) rather than canonical seed cases (`synth_v1.0_42_*`, `case_api_*`) to prevent state contamination. Full protocol is documented in [`docs/TESTING_NOTES.md`](TESTING_NOTES.md).
+
