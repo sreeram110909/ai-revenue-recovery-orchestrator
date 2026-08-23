@@ -64,19 +64,29 @@ class WorkflowNodes:
 
         provenance = state.get("truth_provenance", case.provenance)
 
-        # Audit CASE_INGESTED
-        self.audit_service.log_event(
-            case_id=case.id,
-            event_type="CASE_INGESTED",
-            actor="SYSTEM",
-            previous_status=case.current_status,
-            new_status=case.current_status,
-            details={"case_type": case.case_type.value, "amount": case.amount},
-            provenance=provenance,
-        )
+        # Audit CASE_INGESTED only if not already recorded
+        already_ingested = False
+        if self.audit_service and self.audit_service.repository:
+            try:
+                existing_audit = self.audit_service.repository.get_by_case_id(case.id)
+                already_ingested = any(a.event_type == "CASE_INGESTED" for a in existing_audit)
+            except Exception:
+                already_ingested = False
+
+        if not already_ingested:
+            self.audit_service.log_event(
+                case_id=case.id,
+                event_type="CASE_INGESTED",
+                actor="SYSTEM",
+                previous_status=case.current_status,
+                new_status=case.current_status,
+                details={"case_type": case.case_type.value, "amount": case.amount},
+                provenance=provenance,
+            )
 
         audit_events = list(state.get("audit_events", []))
-        audit_events.append("CASE_INGESTED")
+        if "CASE_INGESTED" not in audit_events:
+            audit_events.append("CASE_INGESTED")
 
         return {
             "case_id": case.id,

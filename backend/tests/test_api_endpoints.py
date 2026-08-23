@@ -113,6 +113,49 @@ def test_ingest_batch_cases(client, sample_case_dict):
     assert data["ingested_count"] == 2
 
 
+def test_ingest_duplicate_case_idempotency(client, sample_case_dict):
+    """Re-ingesting the same case ID must be idempotent and not create duplicate audit events."""
+    # First ingestion
+    res1 = client.post("/api/v1/cases/ingest", json=sample_case_dict)
+    assert res1.status_code == 201
+
+    # Second ingestion of the identical case
+    res2 = client.post("/api/v1/cases/ingest", json=sample_case_dict)
+    assert res2.status_code == 201
+
+    # Verify total case count is 1
+    list_res = client.get("/api/v1/cases")
+    assert list_res.status_code == 200
+    assert list_res.json()["total"] == 1
+
+    # Verify audit trail contains exactly 1 CASE_INGESTED event
+    detail_res = client.get("/api/v1/cases/case_api_001")
+    assert detail_res.status_code == 200
+    audit_trail = detail_res.json()["audit_trail"]
+    ingested_events = [e for e in audit_trail if e["event_type"] == "CASE_INGESTED"]
+    assert len(ingested_events) == 1, f"Expected 1 CASE_INGESTED event, found {len(ingested_events)}"
+
+
+def test_process_duplicate_execution_audit_idempotency(client, sample_case_dict):
+    """Re-processing an existing case must not produce duplicate CASE_INGESTED events."""
+    client.post("/api/v1/cases/ingest", json=sample_case_dict)
+
+    # First workflow execution
+    proc1 = client.post("/api/v1/cases/case_api_001/process")
+    assert proc1.status_code == 200
+
+    # Second workflow execution
+    proc2 = client.post("/api/v1/cases/case_api_001/process")
+    assert proc2.status_code == 200
+
+    # Verify audit trail contains exactly 1 CASE_INGESTED event
+    detail_res = client.get("/api/v1/cases/case_api_001")
+    assert detail_res.status_code == 200
+    audit_trail = detail_res.json()["audit_trail"]
+    ingested_events = [e for e in audit_trail if e["event_type"] == "CASE_INGESTED"]
+    assert len(ingested_events) == 1, f"Expected 1 CASE_INGESTED event, found {len(ingested_events)}"
+
+
 # ---------------------------------------------------------------------------
 # Test: /api/v1/cases
 # ---------------------------------------------------------------------------

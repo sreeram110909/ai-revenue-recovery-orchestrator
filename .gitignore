@@ -30,3 +30,7 @@ __pycache__/
 
 # IDE / System
 .agents/
+
+# Runtime Evaluation Artifacts (Preserve dataset directory)
+data/evaluations/evaluation_results_batch_*.json
+data/evaluations/evaluation_summary_batch_*.md

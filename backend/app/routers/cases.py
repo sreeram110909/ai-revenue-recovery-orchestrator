@@ -84,21 +84,25 @@ async def ingest_cases(
 
     ingested_ids: List[str] = []
     for case in cases_to_ingest:
+        existing = case_repo.get_by_id(case.id)
         case_repo.save(case)
-        audit_svc.log_event(
-            case_id=case.id,
-            event_type="CASE_INGESTED",
-            actor="INGESTION_API",
-            previous_status=None,
-            new_status=case.current_status,
-            details={
-                "amount": case.amount,
-                "currency": case.currency,
-                "failure_code": case.failure_code,
-                "failure_category": case.failure_category.value,
-            },
-            provenance=case.provenance,
-        )
+        if not existing:
+            audit_svc.log_event(
+                case_id=case.id,
+                event_type="CASE_INGESTED",
+                actor="INGESTION_API",
+                previous_status=None,
+                new_status=case.current_status,
+                details={
+                    "amount": case.amount,
+                    "currency": case.currency,
+                    "failure_code": case.failure_code,
+                    "failure_category": case.failure_category.value,
+                },
+                provenance=case.provenance,
+            )
+        else:
+            logger.info("Case '%s' already exists; updated without duplicate CASE_INGESTED audit.", case.id)
         ingested_ids.append(case.id)
 
     logger.info("Ingested %d cases via API.", len(ingested_ids))
