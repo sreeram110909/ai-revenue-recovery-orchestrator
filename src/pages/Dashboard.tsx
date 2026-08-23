@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useMetrics } from '../hooks/useMetrics';
 import { useCases } from '../hooks/useCases';
 import { StatusBadge } from '../components/StatusBadge';
@@ -9,6 +9,7 @@ import {
   ArrowRight,
   ChevronRight,
   Activity,
+  Check,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -24,6 +25,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const { metrics, loading: metricsLoading, error: metricsError, refetch: refetchMetrics } = useMetrics();
   const { cases, loading: casesLoading, refetch: refetchCases } = useCases({ limit: 5 });
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [refreshNotification, setRefreshNotification] = useState<string | null>(null);
 
   const formatCurrency = (val?: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -33,9 +36,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }).format(val || 0);
   };
 
-  const handleRefreshAll = () => {
-    refetchMetrics();
-    refetchCases();
+  const handleRefreshAll = async () => {
+    setIsRefreshing(true);
+    setRefreshNotification(null);
+    try {
+      await Promise.all([refetchMetrics(), refetchCases()]);
+      setRefreshNotification(`Dashboard refreshed at ${new Date().toLocaleTimeString()} (Metrics & recent cases synchronized).`);
+    } catch {
+      // error handled in hooks
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   if (metricsLoading && !metrics) {
@@ -56,9 +67,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </p>
         <button
           onClick={handleRefreshAll}
+          disabled={isRefreshing}
           className="inline-flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700 transition-colors cursor-pointer"
         >
-          <RefreshCw className="w-3.5 h-3.5" /> Retry Connection
+          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Retrying...' : 'Retry Connection'}
         </button>
       </div>
     );
@@ -96,12 +109,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <button
           onClick={handleRefreshAll}
-          className="inline-flex items-center gap-1.5 rounded border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+          disabled={isRefreshing}
+          className="inline-flex items-center gap-1.5 rounded border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          Refresh
+          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
+
+      {/* Live Refresh Confirmation Toast */}
+      {refreshNotification && (
+        <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-300 flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{refreshNotification}</span>
+          </div>
+          <button
+            onClick={() => setRefreshNotification(null)}
+            className="text-[11px] text-emerald-400 hover:text-white cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Hero: Measured Money Recovered */}
       <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6 sm:p-8 flex flex-wrap items-center justify-between gap-6">
