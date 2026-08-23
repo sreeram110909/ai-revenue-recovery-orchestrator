@@ -208,6 +208,35 @@ def test_process_case_endpoint(client, sample_case_dict):
     assert "audit_events" in data
 
 
+def test_process_case_stream_endpoint(client, sample_case_dict):
+    """Executing recovery workflow with real-time SSE step progress via GET /api/v1/cases/{case_id}/process/stream."""
+    client.post("/api/v1/cases/ingest", json=sample_case_dict)
+    response = client.get("/api/v1/cases/case_api_001/process/stream")
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["content-type"]
+
+    # Parse SSE text stream events
+    lines = response.text.strip().split("\n\n")
+    events = []
+    for line in lines:
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    assert len(events) >= 5, f"Expected multiple SSE events, received {len(events)}"
+    event_types = [e.get("event") for e in events]
+    assert "start" in event_types
+    assert "step_progress" in event_types
+    assert "complete" in event_types
+
+    # Verify step names in progress events
+    step_keys = [e.get("step_key") for e in events if e.get("event") == "step_progress"]
+    assert "detect_and_load" in step_keys
+    assert "extract_evidence" in step_keys
+    assert "diagnose" in step_keys
+    assert "score_strategy" in step_keys
+    assert "evaluate_policy" in step_keys
+
+
 # ---------------------------------------------------------------------------
 # Test: /api/v1/batch/run & /api/v1/metrics/batch
 # ---------------------------------------------------------------------------

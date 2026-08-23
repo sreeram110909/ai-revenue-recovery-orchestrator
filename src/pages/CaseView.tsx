@@ -19,7 +19,17 @@ export const CaseView: React.FC<CaseViewProps> = ({
   onBackToCases,
   onSelectCase,
 }) => {
-  const { caseData, auditTrail, loading, processing, error, processCase } = useCase(caseId || undefined);
+  const {
+    caseData,
+    auditTrail,
+    loading,
+    processing,
+    activeStepKey,
+    completedStepKeys,
+    streamingStatus,
+    error,
+    processCaseStream,
+  } = useCase(caseId || undefined);
   const { cases } = useCases({ limit: 100 });
   const [showTechnicalDetails, setShowTechnicalDetails] = useState<boolean>(false);
   const [showFullAuditLog, setShowFullAuditLog] = useState<boolean>(false);
@@ -35,12 +45,13 @@ export const CaseView: React.FC<CaseViewProps> = ({
 
   const handleProcessWorkflow = async () => {
     setProcessSuccessMessage(null);
+    setShowTechnicalDetails(true);
     try {
-      const res = await processCase();
+      const res = await processCaseStream();
       if (res) {
         const action = res.case.executed_action?.action_type || res.case.policy_evaluation?.approved_strategy || 'Action';
         const outcome = res.case.policy_evaluation?.outcome || 'PROCESSED';
-        setProcessSuccessMessage(`LangGraph workflow executed: Policy ${outcome} (${action}). Audit trail updated.`);
+        setProcessSuccessMessage(`LangGraph workflow completed: Policy ${outcome} (${action}). Audit trail updated.`);
       }
     } catch {
       // handled in hook
@@ -232,6 +243,21 @@ export const CaseView: React.FC<CaseViewProps> = ({
         </div>
       </div>
 
+      {/* Real-Time Streaming Notification Banner */}
+      {processing && (
+        <div className="p-3 rounded-lg border border-sky-500/30 bg-sky-500/10 text-xs text-sky-300 flex items-center justify-between animate-pulse">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 text-sky-400 animate-spin shrink-0" />
+            <span>
+              <strong>LangGraph Live Streaming:</strong> {streamingStatus || 'Executing workflow nodes...'}
+            </span>
+          </div>
+          <span className="text-[11px] text-sky-400 font-mono">
+            {completedStepKeys.length}/7 steps
+          </span>
+        </div>
+      )}
+
       {/* Success Notification Banner */}
       {processSuccessMessage && (
         <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-300 flex items-center justify-between animate-fade-in">
@@ -331,7 +357,12 @@ export const CaseView: React.FC<CaseViewProps> = ({
         {showTechnicalDetails && (
           <div className="border-t border-slate-800 p-5 space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DecisionTimeline caseData={caseData} />
+              <DecisionTimeline
+                caseData={caseData}
+                activeStepKey={activeStepKey}
+                completedStepKeys={completedStepKeys}
+                isStreaming={processing}
+              />
 
               <div className="space-y-6">
                 <PolicyPanel

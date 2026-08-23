@@ -1,7 +1,10 @@
+import asyncio
+import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..models.case_model import RecoveryCaseModel
@@ -14,6 +17,7 @@ from ..repositories.audit_repository import AuditRepository
 from ..services.audit_service import AuditService
 from ..orchestrator.nodes import WorkflowNodes
 from ..orchestrator.workflow import run_recovery_workflow
+from ..orchestrator.builder import build_recovery_graph
 
 logger = logging.getLogger(__name__)
 
@@ -203,3 +207,167 @@ async def process_case(
         "case": resolved_case.model_dump(mode="json"),
         "audit_events": final_state.get("audit_events", []),
     }
+
+
+@router.get("/{case_id}/process/stream")
+async def process_case_stream(
+    case_id: str,
+    session=Depends(get_db_session),
+):
+    """Execute LangGraph recovery workflow with real-time Server-Sent Events (SSE) progress.
+
+    Emits SSE events per decision-flow step:
+    - detect_and_load (1. Ingestion & Detection)
+    - extract_evidence (2. Evidence Scrubbing)
+    - diagnose (3. Gemini Diagnosis)
+    - score_strategy (4. Strategy Scoring)
+    - evaluate_policy (5. Policy Engine Evaluation)
+    - execute_action (6. Action Dispatch)
+    - verify_outcome (7. Gateway Verification)
+    - complete (Workflow Complete)
+    """
+    case_repo = CaseRepository(session)
+    db_case = case_repo.get_by_id(case_id)
+    if not db_case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Case '{case_id}' not found.")
+
+    case = _db_model_to_case(db_case)
+    nodes = WorkflowNodes(session=session)
+    graph = build_recovery_graph(nodes=nodes)
+
+    initial_state = {
+        "case_id": case.id,
+        "case": case,
+        "truth_provenance": case.provenance,
+        "audit_events": [],
+    }
+    config = {
+        "configurable": {
+            "thread_id": f"recovery_stream_{case.id}",
+        }
+    }
+
+    step_info_map = {
+        "detect_and_load": {
+            "step_index": 1,
+            "step_name": "1. Ingestion & Detection",
+            "detail": f"Failure code {case.failure_code} ({case.failure_category.value}) loaded.",
+        },
+        "extract_evidence": {
+            "step_index": 2,
+            "step_name": "2. Evidence Scrubbing",
+            "detail": "PII redacted, payload scrubbed for policy evaluation.",
+        },
+        "diagnose": {
+            "step_index": 3,
+            "step_name": "3. Gemini Diagnosis",
+            "detail": "Failure category and candidate strategies evaluated.",
+        },
+        "score_strategy": {
+            "step_index": 4,
+            "step_name": "4. Strategy Scoring",
+            "detail": "Deterministic scoring calculated across recovery actions.",
+        },
+        "evaluate_policy": {
+            "step_index": 5,
+            "step_name": "5. Policy Engine Evaluation",
+            "detail": "Deterministic Policy Engine safety guardrails evaluated.",
+        },
+        "execute_action": {
+            "step_index": 6,
+            "step_name": "6. Action Dispatch",
+            "detail": "Policy-authorized action executed safely.",
+        },
+        "verify_outcome": {
+            "step_index": 7,
+            "step_name": "7. Gateway Verification",
+            "detail": "Payment status verified independently against gateway state.",
+        },
+        "resolve_state": {
+            "step_index": 8,
+            "step_name": "State Resolution",
+            "detail": "Final case state and recovery metrics consolidated.",
+        },
+        "log_audit": {
+            "step_index": 9,
+            "step_name": "Audit Finalization",
+            "detail": "Immutable audit record committed.",
+        },
+    }
+
+    async def event_generator():
+        current_case = case
+        latest_audit_events = []
+        try:
+            # Yield initial connection event
+            start_payload = {
+                "event": "start",
+                "case_id": case_id,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            yield f"data: {json.dumps(start_payload)}\n\n"
+            await asyncio.sleep(0.04)
+
+            for chunk in graph.stream(initial_state, config=config, stream_mode="updates"):
+                for node_name, node_update in chunk.items():
+                    if isinstance(node_update, dict):
+                        if "case" in node_update and node_update["case"]:
+                            current_case = node_update["case"]
+                        if "audit_events" in node_update:
+                            latest_audit_events = node_update["audit_events"]
+
+                    step_meta = step_info_map.get(node_name, {
+                        "step_index": 0,
+                        "step_name": node_name,
+                        "detail": f"Step {node_name} completed.",
+                    })
+
+                    event_data = {
+                        "event": "step_progress",
+                        "step_key": node_name,
+                        "step_index": step_meta["step_index"],
+                        "step_name": step_meta["step_name"],
+                        "status": "completed",
+                        "detail": step_meta["detail"],
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "case": current_case.model_dump(mode="json"),
+                    }
+                    yield f"data: {json.dumps(event_data)}\n\n"
+                    # Small 80ms delay for human-observable visual step transitions
+                    await asyncio.sleep(0.08)
+
+            # Persist the resolved case in DB
+            case_repo.save(current_case)
+
+            # Emit final complete event
+            complete_data = {
+                "event": "complete",
+                "status": "success",
+                "case_id": case_id,
+                "final_status": current_case.current_status.value,
+                "verified_recovered_amount": current_case.verified_recovered_amount,
+                "case": current_case.model_dump(mode="json"),
+                "audit_events": latest_audit_events,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            yield f"data: {json.dumps(complete_data)}\n\n"
+
+        except Exception as e:
+            logger.error("Error during LangGraph streaming for case '%s': %s", case_id, e)
+            error_data = {
+                "event": "error",
+                "case_id": case_id,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            yield f"data: {json.dumps(error_data)}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )

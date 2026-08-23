@@ -87,7 +87,7 @@ export const api = {
   },
 
   /**
-   * Execute LangGraph recovery workflow on a case
+   * Execute LangGraph recovery workflow on a case (blocking POST)
    */
   async processCase(caseId: string): Promise<{
     status: string;
@@ -100,6 +100,57 @@ export const api = {
     return fetchJson(`/api/v1/cases/${encodeURIComponent(caseId)}/process`, {
       method: 'POST',
     });
+  },
+
+  /**
+   * Execute LangGraph recovery workflow with real-time SSE progress streaming.
+   */
+  streamProcessCase(
+    caseId: string,
+    onStep: (data: {
+      event: string;
+      step_key?: string;
+      step_index?: number;
+      step_name?: string;
+      status?: string;
+      detail?: string;
+      case?: RecoveryCase;
+      final_status?: string;
+      verified_recovered_amount?: number;
+      audit_events?: string[];
+      error?: string;
+    }) => void,
+    onError: (err: Error) => void,
+    onComplete: (data?: any) => void
+  ): () => void {
+    const url = `/api/v1/cases/${encodeURIComponent(caseId)}/process/stream`;
+    const eventSource = new EventSource(url);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.event === 'step_progress') {
+          onStep(payload);
+        } else if (payload.event === 'complete') {
+          onComplete(payload);
+          eventSource.close();
+        } else if (payload.event === 'error') {
+          onError(new Error(payload.error || 'Stream error occurred'));
+          eventSource.close();
+        }
+      } catch (err: any) {
+        console.error('Failed to parse SSE payload:', err);
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      eventSource.close();
+      onError(new Error('SSE connection closed or lost'));
+    };
+
+    return () => {
+      eventSource.close();
+    };
   },
 
   /**
