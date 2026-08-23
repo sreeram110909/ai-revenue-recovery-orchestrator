@@ -90,7 +90,9 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
       title: '4. Strategy Scoring',
       desc: `Deterministic ranking across locked actions`,
       staticDone: !!caseData.recommended_strategy,
-      sub: `Top strategy: ${caseData.recommended_strategy || 'Evaluating...'}`,
+      sub: caseData.recommended_strategy
+        ? `Top strategy: ${caseData.recommended_strategy}`
+        : 'Strategy ranking pending',
     },
     {
       key: 'evaluate_policy',

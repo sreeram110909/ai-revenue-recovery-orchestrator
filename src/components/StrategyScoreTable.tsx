@@ -41,9 +41,13 @@ export const StrategyScoreTable: React.FC<StrategyScoreTableProps> = ({
             Deterministic scoring across locked action space
           </p>
         </div>
-        {recommendedStrategy && (
+        {recommendedStrategy ? (
           <span className="text-xs font-mono text-emerald-400 font-medium">
             Top: {recommendedStrategy}
+          </span>
+        ) : (
+          <span className="text-xs text-slate-500 italic">
+            Pending diagnosis
           </span>
         )}
       </div>

@@ -290,19 +290,31 @@ export const CaseView: React.FC<CaseViewProps> = ({
 
           <div className="p-3.5 rounded border border-slate-800/80 bg-slate-950/60 space-y-1">
             <span className="text-slate-500 block text-[11px] font-medium">2. AI suggested</span>
-            <p className="font-mono text-emerald-400 font-medium">
-              {caseData.recommended_strategy || 'SMART_RETRY'}
-            </p>
+            {caseData.recommended_strategy ? (
+              <p className="font-mono text-emerald-400 font-medium">
+                {caseData.recommended_strategy}
+              </p>
+            ) : (
+              <p className="text-slate-500 italic text-xs">
+                Pending diagnosis
+              </p>
+            )}
           </div>
 
           <div className="p-3.5 rounded border border-slate-800/80 bg-slate-950/60 space-y-1">
             <span className="text-slate-500 block text-[11px] font-medium">3. Policy decision</span>
-            <div className="flex items-center gap-2">
-              <StatusBadge status={policyOutcome || 'ALLOW'} size="sm" />
-              <span className="font-mono text-slate-200">
-                {caseData.policy_evaluation?.approved_strategy || caseData.recommended_strategy}
-              </span>
-            </div>
+            {policyOutcome ? (
+              <div className="flex items-center gap-2">
+                <StatusBadge status={policyOutcome} size="sm" />
+                <span className="font-mono text-slate-200">
+                  {caseData.policy_evaluation?.approved_strategy || caseData.recommended_strategy || '—'}
+                </span>
+              </div>
+            ) : (
+              <p className="text-slate-500 italic text-xs">
+                Awaiting policy evaluation
+              </p>
+            )}
           </div>
         </div>
 
