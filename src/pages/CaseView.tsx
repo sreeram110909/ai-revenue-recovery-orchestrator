@@ -151,6 +151,9 @@ export const CaseView: React.FC<CaseViewProps> = ({
       if (actionType === 'STOP') return 'Recovery stopped';
       return actionType ? `${actionType}` : 'Action executed';
     }
+    const approvedStrategy = caseData.policy_evaluation?.approved_strategy;
+    if (approvedStrategy === 'HUMAN_ESCALATION') return 'Escalated to human review';
+    if (approvedStrategy === 'STOP') return 'Recovery stopped';
     if (policyOutcome === 'BLOCK') return 'Blocked by policy (No financial action)';
     if (policyOutcome === 'ESCALATE') return 'Escalated to operations (No financial action)';
     if (policyOutcome === 'STOP') return 'Stopped by policy (No financial action)';
@@ -159,7 +162,14 @@ export const CaseView: React.FC<CaseViewProps> = ({
 
   // Plain English Verification Label
   const getVerificationLabel = () => {
-    if (policyOutcome === 'BLOCK' || policyOutcome === 'ESCALATE' || policyOutcome === 'STOP') {
+    const approvedStrategy = caseData.policy_evaluation?.approved_strategy;
+    if (
+      policyOutcome === 'BLOCK' ||
+      policyOutcome === 'ESCALATE' ||
+      policyOutcome === 'STOP' ||
+      approvedStrategy === 'HUMAN_ESCALATION' ||
+      approvedStrategy === 'STOP'
+    ) {
       return 'No financial action taken';
     }
     if (caseData.verification_outcome) {

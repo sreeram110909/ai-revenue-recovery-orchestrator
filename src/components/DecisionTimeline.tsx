@@ -22,7 +22,13 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
   const isVerified = !!caseData.verification_outcome;
 
   const policyOutcome = caseData.policy_evaluation?.outcome;
-  const isPolicyBlocked = policyOutcome === 'BLOCK' || policyOutcome === 'ESCALATE' || policyOutcome === 'STOP';
+  const approvedStrategy = caseData.policy_evaluation?.approved_strategy;
+  const isNoFinancialAction =
+    policyOutcome === 'BLOCK' ||
+    policyOutcome === 'ESCALATE' ||
+    policyOutcome === 'STOP' ||
+    approvedStrategy === 'HUMAN_ESCALATION' ||
+    approvedStrategy === 'STOP';
 
   // Derive meaningful Action Dispatch description
   const getActionDesc = () => {
@@ -42,6 +48,8 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
       if (actionType) return `Action Dispatched: ${actionType} (${status})`;
       return `Action Succeeded (${status})`;
     }
+    if (approvedStrategy === 'HUMAN_ESCALATION') return 'Escalated to Operations (No Financial Action)';
+    if (approvedStrategy === 'STOP') return 'Recovery Stopped (No Financial Action)';
     if (policyOutcome === 'BLOCK') return 'Blocked by Policy (No Financial Action)';
     if (policyOutcome === 'ESCALATE') return 'Escalated to Operations (No Financial Action)';
     if (policyOutcome === 'STOP') return 'Stopped by Policy (No Financial Action)';
@@ -50,7 +58,7 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
 
   // Derive meaningful Gateway Verification description
   const getVerificationDesc = () => {
-    if (isPolicyBlocked) {
+    if (isNoFinancialAction) {
       return 'No financial action dispatched (₹0.00 recovered)';
     }
     if (caseData.verification_outcome) {
@@ -107,10 +115,10 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
       key: 'execute_action',
       title: '6. Action Dispatch',
       desc: getActionDesc(),
-      staticDone: isExecuted || isPolicyBlocked,
+      staticDone: isExecuted || isNoFinancialAction,
       sub: caseData.executed_action?.gateway_reference_id
         ? `Ref: ${caseData.executed_action.gateway_reference_id}`
-        : isPolicyBlocked
+        : isNoFinancialAction
         ? 'Financial execution skipped by policy'
         : undefined,
     },
@@ -118,7 +126,7 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
       key: 'verify_outcome',
       title: '7. Gateway Verification',
       desc: getVerificationDesc(),
-      staticDone: isVerified || isPolicyBlocked,
+      staticDone: isVerified || isNoFinancialAction,
       sub: `Final Status: ${caseData.current_status}`,
     },
   ];

@@ -1,0 +1,17 @@
+{
+  "python.defaultInterpreterPath": "/Users/sreerambanoth/Documents/ai-revenue-recovery-orchestrator/.venv/bin/python",
+  "python.pythonPath": "/Users/sreerambanoth/Documents/ai-revenue-recovery-orchestrator/.venv/bin/python",
+  "python.analysis.extraPaths": [
+    "/Users/sreerambanoth/Documents/ai-revenue-recovery-orchestrator/backend",
+    "/Users/sreerambanoth/Documents/ai-revenue-recovery-orchestrator/backend/app",
+    "${workspaceFolder}/backend",
+    "${workspaceFolder}/backend/app"
+  ],
+  "python.autoComplete.extraPaths": [
+    "/Users/sreerambanoth/Documents/ai-revenue-recovery-orchestrator/backend",
+    "/Users/sreerambanoth/Documents/ai-revenue-recovery-orchestrator/backend/app",
+    "${workspaceFolder}/backend",
+    "${workspaceFolder}/backend/app"
+  ],
+  "python.envFile": "${workspaceFolder}/.env"
+}

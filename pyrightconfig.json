@@ -1,0 +1,30 @@
+{
+  "include": [
+    "backend"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    ".venv"
+  ],
+  "venvPath": "/Users/sreerambanoth/Documents/ai-revenue-recovery-orchestrator",
+  "venv": ".venv",
+  "extraPaths": [
+    "/Users/sreerambanoth/Documents/ai-revenue-recovery-orchestrator/backend",
+    "/Users/sreerambanoth/Documents/ai-revenue-recovery-orchestrator/backend/app",
+    "backend",
+    "backend/app"
+  ],
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Darwin",
+  "executionEnvironments": [
+    {
+      "root": "backend",
+      "extraPaths": [
+        "backend",
+        "backend/app"
+      ],
+      "pythonVersion": "3.11"
+    }
+  ]
+}

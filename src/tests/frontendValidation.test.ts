@@ -282,6 +282,21 @@ export function runFrontendValidationTests(): { total: number; passed: number; f
     }
   });
 
+  // 15. AI-Initiated Escalation / Stop Label Resolution in CaseView and DecisionTimeline
+  test('Action & Verification Labels: Handles AI-initiated HUMAN_ESCALATION and STOP when policy outcome is ALLOW', () => {
+    const cvPath = path.resolve(srcDir, 'pages/CaseView.tsx');
+    const cvContent = fs.readFileSync(cvPath, 'utf-8');
+    if (!cvContent.includes("approvedStrategy === 'HUMAN_ESCALATION'") || !cvContent.includes("approvedStrategy === 'STOP'")) {
+      throw new Error('CaseView.tsx must check approved_strategy for HUMAN_ESCALATION and STOP');
+    }
+
+    const dtPath = path.resolve(srcDir, 'components/DecisionTimeline.tsx');
+    const dtContent = fs.readFileSync(dtPath, 'utf-8');
+    if (!dtContent.includes("approvedStrategy === 'HUMAN_ESCALATION'") || !dtContent.includes("approvedStrategy === 'STOP'")) {
+      throw new Error('DecisionTimeline.tsx must check approved_strategy for HUMAN_ESCALATION and STOP');
+    }
+  });
+
   const passed = results.filter((r) => r.passed).length;
   const failed = results.filter((r) => !r.passed).length;
 
