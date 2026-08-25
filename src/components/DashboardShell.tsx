@@ -50,17 +50,17 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased flex flex-col selection:bg-slate-700 selection:text-white">
+    <div className="min-h-screen bg-[#0B0D10] text-[#ECEFF3] font-sans antialiased flex flex-col selection:bg-[#262B33] selection:text-white">
       {/* Top Header */}
-      <header className="border-b border-slate-800/80 bg-slate-950 sticky top-0 z-30">
+      <header className="border-b border-[#262B33] bg-[#0B0D10] sticky top-0 z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
             {/* Logo / Product Name */}
             <div className="flex items-center gap-2.5">
-              <div className="h-6 w-6 rounded bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xs">
+              <div className="h-6 w-6 rounded bg-[#2DBE8F]/20 border border-[#2DBE8F]/30 flex items-center justify-center text-[#2DBE8F] font-bold text-xs">
                 R
               </div>
-              <span className="text-sm font-semibold text-white tracking-tight">
+              <span className="text-sm font-semibold text-[#ECEFF3] tracking-tight font-heading">
                 Revenue Recovery
               </span>
             </div>
@@ -76,8 +76,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                     onClick={() => onTabChange(item.id)}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-slate-800 text-white font-semibold'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                        ? 'bg-[#14171C] text-[#ECEFF3] font-semibold'
+                        : 'text-[#8B93A1] hover:text-[#ECEFF3] hover:bg-[#14171C]/60'
                     }`}
                   >
                     {item.label}
@@ -91,10 +91,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <span
                 className={`px-2 py-0.5 rounded text-[11px] font-sans font-medium border transition-colors ${
                   !health || healthError
-                    ? 'bg-slate-900/60 border-slate-800 text-slate-500'
+                    ? 'bg-[#14171C]/60 border-[#262B33] text-[#8B93A1]'
                     : health.razorpay_configured
-                    ? 'bg-slate-900 border-slate-800 text-slate-300'
-                    : 'bg-amber-500/10 border-amber-500/20 text-amber-300'
+                    ? 'bg-[#14171C] border-[#262B33] text-[#ECEFF3]/80'
+                    : 'bg-[#E8A33D]/10 border-[#E8A33D]/20 text-[#E8A33D]'
                 }`}
               >
                 {!health || healthError
@@ -103,14 +103,14 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   ? 'Razorpay Test Mode'
                   : 'Mocked Gateway (No Keys)'}
               </span>
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <div className="flex items-center gap-1.5 text-[11px] text-[#8B93A1]">
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
                     healthError
-                      ? 'bg-rose-500'
+                      ? 'bg-[#C24C4C]'
                       : !health
-                      ? 'bg-slate-500 animate-pulse'
-                      : 'bg-emerald-400'
+                      ? 'bg-[#8B93A1] animate-pulse'
+                      : 'bg-[#2DBE8F]'
                   }`}
                 />
                 <span>
@@ -132,7 +132,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-4 text-xs text-slate-500">
+      <footer className="border-t border-[#262B33]/60 bg-[#0B0D10] py-4 text-xs text-[#8B93A1]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
           <span>AI Revenue Recovery Orchestrator • Policy-Gated Revenue Recovery System</span>
           <span>Verified Gateway Settlement</span>

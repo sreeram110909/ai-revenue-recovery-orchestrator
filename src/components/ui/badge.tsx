@@ -3,19 +3,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/utils';
 
 export const badgeVariants = cva(
-  'inline-flex items-center gap-1.5 font-sans font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2',
+  'inline-flex items-center gap-1.5 font-sans font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[#262B33] focus:ring-offset-2',
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-slate-800 text-slate-100',
-        secondary: 'border-transparent bg-slate-900 text-slate-300',
-        outline: 'border border-slate-700 bg-transparent text-slate-300',
-        emerald: 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-400',
-        amber: 'border border-amber-500/20 bg-amber-500/10 text-amber-400',
-        rose: 'border border-rose-500/20 bg-rose-500/10 text-rose-400',
+        default: 'border-transparent bg-[#14171C] text-[#ECEFF3]',
+        secondary: 'border-transparent bg-[#0B0D10] text-[#8B93A1]',
+        outline: 'border border-[#262B33] bg-transparent text-[#8B93A1]',
+        emerald: 'border border-[#2DBE8F]/20 bg-[#2DBE8F]/10 text-[#2DBE8F]',
+        amber: 'border border-[#E8A33D]/20 bg-[#E8A33D]/10 text-[#E8A33D]',
+        rose: 'border border-[#C24C4C]/20 bg-[#C24C4C]/10 text-[#D4605F]',
         indigo: 'border border-indigo-500/20 bg-indigo-500/10 text-indigo-300',
         sky: 'border border-sky-500/20 bg-sky-500/10 text-sky-300',
-        slate: 'border border-slate-700 bg-slate-800/80 text-slate-300',
+        slate: 'border border-[#262B33] bg-[#14171C] text-[#8B93A1]',
       },
       size: {
         sm: 'px-2 py-0.5 rounded text-xs',

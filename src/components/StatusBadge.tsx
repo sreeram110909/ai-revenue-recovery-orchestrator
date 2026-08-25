@@ -28,14 +28,14 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       case 'SUCCESS':
         return {
           variant: 'emerald',
-          dot: 'bg-emerald-500',
+          dot: 'bg-[#2DBE8F]',
         };
       case 'ESCALATED':
       case 'ESCALATE':
       case 'HUMAN_ESCALATION':
         return {
           variant: 'amber',
-          dot: 'bg-amber-500',
+          dot: 'bg-[#E8A33D]',
         };
       case 'BLOCK':
       case 'STOPPED':
@@ -44,7 +44,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       case 'CLOSED_UNRECOVERABLE':
         return {
           variant: 'rose',
-          dot: 'bg-rose-500',
+          dot: 'bg-[#C24C4C]',
         };
       case 'DOWNGRADE':
       case 'UPDATE_PAYMENT_METHOD':
@@ -65,7 +65,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       default:
         return {
           variant: 'slate',
-          dot: 'bg-slate-400',
+          dot: 'bg-[#8B93A1]',
         };
     }
   };

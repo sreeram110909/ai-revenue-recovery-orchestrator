@@ -132,15 +132,15 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
   ];
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/30 p-5 space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
+    <div className="rounded-lg border border-[#262B33] bg-[#14171C]/80 p-5 space-y-4">
+      <div className="flex items-center justify-between border-b border-[#262B33] pb-3">
+        <h4 className="text-xs font-semibold text-[#ECEFF3] uppercase tracking-wider font-heading">
           Decision Flow (LangGraph State Machine)
         </h4>
         <StatusBadge status={caseData.current_status} size="sm" />
       </div>
 
-      <div className="space-y-4 pl-4 border-l border-slate-800 relative">
+      <div className="space-y-4 pl-4 border-l border-[#262B33] relative">
         {steps.map((step, idx) => {
           const isDone = isStreaming
             ? completedStepKeys.includes(step.key)
@@ -154,8 +154,8 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
                   inProgress
                     ? 'bg-sky-400 border-sky-300 ring-4 ring-sky-500/30 animate-pulse'
                     : isDone
-                    ? 'bg-emerald-500 border-emerald-400 ring-2 ring-slate-950'
-                    : 'bg-slate-800 border-slate-700 ring-2 ring-slate-950'
+                    ? 'bg-[#2DBE8F] border-[#2DBE8F]/80 ring-2 ring-[#0B0D10]'
+                    : 'bg-[#262B33] border-[#262B33] ring-2 ring-[#0B0D10]'
                 }`}
               />
               <div className="flex items-center justify-between">
@@ -164,8 +164,8 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
                     inProgress
                       ? 'text-sky-300 font-semibold'
                       : isDone
-                      ? 'text-slate-200'
-                      : 'text-slate-500'
+                      ? 'text-[#ECEFF3]/80'
+                      : 'text-[#8B93A1]/60'
                   }`}
                 >
                   {step.title}
@@ -176,16 +176,16 @@ export const DecisionTimeline: React.FC<DecisionTimelineProps> = ({
                     <RefreshCw className="w-2.5 h-2.5 animate-spin" /> In Progress...
                   </span>
                 ) : isDone ? (
-                  <span className="text-[11px] text-emerald-400/90 font-sans">Completed</span>
+                  <span className="text-[11px] text-[#2DBE8F]/90 font-sans">Completed</span>
                 ) : (
-                  <span className="text-[11px] text-slate-600 font-sans">Pending</span>
+                  <span className="text-[11px] text-[#8B93A1]/40 font-sans">Pending</span>
                 )}
               </div>
-              <p className={`text-xs transition-colors ${isDone || inProgress ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className={`text-xs transition-colors ${isDone || inProgress ? 'text-[#8B93A1]' : 'text-[#8B93A1]/40'}`}>
                 {step.desc}
               </p>
               {step.sub && (
-                <p className={`text-[11px] font-mono transition-colors ${isDone || inProgress ? 'text-slate-500' : 'text-slate-700'}`}>
+                <p className={`text-[11px] font-mono transition-colors ${isDone || inProgress ? 'text-[#8B93A1]/70' : 'text-[#8B93A1]/30'}`}>
                   {step.sub}
                 </p>
               )}

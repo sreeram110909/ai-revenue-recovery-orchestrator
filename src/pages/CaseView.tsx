@@ -60,17 +60,17 @@ export const CaseView: React.FC<CaseViewProps> = ({
 
   if (!caseId) {
     return (
-      <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-8 text-center space-y-5">
+      <div className="rounded-lg border border-[#262B33] bg-[#14171C] p-8 text-center space-y-5">
         <div className="space-y-1.5 max-w-md mx-auto">
-          <h3 className="text-base font-semibold text-white">No recovery case selected</h3>
-          <p className="text-xs text-slate-400">
+          <h3 className="text-base font-semibold text-[#ECEFF3] font-heading">No recovery case selected</h3>
+          <p className="text-xs text-[#8B93A1]">
             Select a recovery case to review payment failure diagnosis, policy authorization, and recovery outcome.
           </p>
         </div>
 
         {cases.length > 0 ? (
           <div className="max-w-lg mx-auto space-y-2 pt-2">
-            <span className="text-xs font-medium text-slate-400 block text-left">
+            <span className="text-xs font-medium text-[#8B93A1] block text-left">
               Recommended demo cases ({cases.length})
             </span>
             <div className="space-y-1.5 text-left">
@@ -78,16 +78,16 @@ export const CaseView: React.FC<CaseViewProps> = ({
                 <div
                   key={c.id}
                   onClick={() => onSelectCase(c.id)}
-                  className="p-3 rounded border border-slate-800 bg-slate-950/60 hover:bg-slate-900 cursor-pointer transition-colors flex items-center justify-between"
+                  className="p-3 rounded border border-[#262B33] bg-[#0B0D10]/60 hover:bg-[#14171C] cursor-pointer transition-colors flex items-center justify-between"
                 >
                   <div>
-                    <span className="font-mono text-xs font-medium text-white">{c.id}</span>
-                    <p className="text-[11px] text-slate-400">
+                    <span className="font-mono text-xs font-medium text-[#ECEFF3]">{c.id}</span>
+                    <p className="text-[11px] text-[#8B93A1]">
                       {c.case_type === 'ONE_TIME_PAYMENT' ? 'One-Time' : 'Subscription'} • {c.failure_code}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs font-medium text-white">{formatCurrency(c.amount)}</span>
+                    <span className="font-mono text-xs font-medium text-[#ECEFF3]">{formatCurrency(c.amount)}</span>
                     <StatusBadge status={c.current_status} size="sm" />
                   </div>
                 </div>
@@ -97,7 +97,7 @@ export const CaseView: React.FC<CaseViewProps> = ({
         ) : (
           <button
             onClick={onBackToCases}
-            className="inline-flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded border border-[#262B33] bg-[#14171C] px-3 py-1.5 text-xs font-medium text-[#ECEFF3] hover:bg-[#262B33]/60 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Open Cases
           </button>
@@ -108,7 +108,7 @@ export const CaseView: React.FC<CaseViewProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-xs text-slate-400 font-sans">
+      <div className="flex items-center justify-center py-20 text-xs text-[#8B93A1] font-sans">
         <RefreshCw className="w-4 h-4 animate-spin mr-2" />
         Loading case '{caseId}'...
       </div>
@@ -117,14 +117,14 @@ export const CaseView: React.FC<CaseViewProps> = ({
 
   if (error || !caseData) {
     return (
-      <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-8 text-center space-y-4">
-        <h3 className="text-sm font-semibold text-white">Case Not Found</h3>
-        <p className="text-xs text-slate-400 max-w-md mx-auto">
+      <div className="rounded-lg border border-[#262B33] bg-[#14171C] p-8 text-center space-y-4">
+        <h3 className="text-sm font-semibold text-[#ECEFF3] font-heading">Case Not Found</h3>
+        <p className="text-xs text-[#8B93A1] max-w-md mx-auto">
           {error || `Unable to locate recovery case '${caseId}'.`}
         </p>
         <button
           onClick={onBackToCases}
-          className="inline-flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded border border-[#262B33] bg-[#14171C] px-3 py-1.5 text-xs font-medium text-[#ECEFF3] hover:bg-[#262B33]/60 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Cases
         </button>
@@ -185,21 +185,21 @@ export const CaseView: React.FC<CaseViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#262B33] pb-4">
         <div className="flex items-center gap-3">
           <button
             onClick={onBackToCases}
-            className="p-1.5 rounded border border-slate-800 bg-slate-900 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded border border-[#262B33] bg-[#14171C] text-[#8B93A1] hover:text-[#ECEFF3] transition-colors cursor-pointer"
             title="Back to Cases"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-semibold font-mono text-white">{caseData.id}</h1>
+              <h1 className="text-xl font-semibold font-mono text-[#ECEFF3]">{caseData.id}</h1>
               <StatusBadge status={caseData.current_status} size="sm" />
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#8B93A1] mt-0.5">
               {formatCurrency(caseData.amount)} • {caseData.case_type === 'ONE_TIME_PAYMENT' ? 'One-Time Payment' : 'Subscription'} • {caseData.failure_category.replace(/_/g, ' ')}
             </p>
           </div>
@@ -214,7 +214,7 @@ export const CaseView: React.FC<CaseViewProps> = ({
                 setProcessSuccessMessage(null);
                 onSelectCase(e.target.value);
               }}
-              className="rounded border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs font-mono text-slate-300 focus:outline-none cursor-pointer"
+              className="rounded border border-[#262B33] bg-[#14171C] px-2.5 py-1.5 text-xs font-mono text-[#8B93A1] focus:outline-none cursor-pointer"
             >
               {cases.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -229,8 +229,8 @@ export const CaseView: React.FC<CaseViewProps> = ({
             disabled={processing || isTerminal}
             className={`inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
               isTerminal
-                ? 'border border-slate-800 bg-slate-900 text-slate-500 cursor-not-allowed'
-                : 'border border-slate-700 bg-slate-800 text-white hover:bg-slate-700'
+                ? 'border border-[#262B33] bg-[#14171C] text-[#8B93A1] cursor-not-allowed'
+                : 'border border-[#262B33] bg-[#14171C] text-[#ECEFF3] hover:bg-[#262B33]/60'
             }`}
           >
             {processing ? (
@@ -240,7 +240,7 @@ export const CaseView: React.FC<CaseViewProps> = ({
               </>
             ) : isTerminal ? (
               <>
-                <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#8B93A1]" />
                 Completed
               </>
             ) : (
@@ -270,14 +270,14 @@ export const CaseView: React.FC<CaseViewProps> = ({
 
       {/* Success Notification Banner */}
       {processSuccessMessage && (
-        <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-300 flex items-center justify-between animate-fade-in">
+        <div className="p-3 rounded-lg border border-[#2DBE8F]/30 bg-[#2DBE8F]/10 text-xs text-[#2DBE8F] flex items-center justify-between animate-fade-in">
           <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+            <Check className="w-4 h-4 text-[#2DBE8F] shrink-0" />
             <span>{processSuccessMessage}</span>
           </div>
           <button
             onClick={() => setProcessSuccessMessage(null)}
-            className="text-[11px] text-emerald-400 hover:text-white cursor-pointer"
+            className="text-[11px] text-[#2DBE8F] hover:text-[#ECEFF3] cursor-pointer"
           >
             Dismiss
           </button>
@@ -285,43 +285,43 @@ export const CaseView: React.FC<CaseViewProps> = ({
       )}
 
       {/* SECTION 1: WHAT HAPPENED? (Merchant Plain Language) */}
-      <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-6 space-y-4">
-        <h2 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
+      <div className="rounded-lg border border-[#262B33] bg-[#14171C] p-6 space-y-4">
+        <h2 className="text-xs font-semibold text-[#ECEFF3] uppercase tracking-wider font-heading">
           What happened?
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-sans">
-          <div className="p-3.5 rounded border border-slate-800/80 bg-slate-950/60 space-y-1">
-            <span className="text-slate-500 block text-[11px] font-medium">1. Issue detected</span>
-            <p className="text-slate-200">
+          <div className="p-3.5 rounded border border-[#262B33] bg-[#0B0D10]/60 space-y-1">
+            <span className="text-[#8B93A1] block text-[11px] font-medium">1. Issue detected</span>
+            <p className="text-[#ECEFF3]/80">
               Payment failed due to {caseData.failure_category.replace(/_/g, ' ').toLowerCase()}.
             </p>
           </div>
 
-          <div className="p-3.5 rounded border border-slate-800/80 bg-slate-950/60 space-y-1">
-            <span className="text-slate-500 block text-[11px] font-medium">2. AI suggested</span>
+          <div className="p-3.5 rounded border border-[#262B33] bg-[#0B0D10]/60 space-y-1">
+            <span className="text-[#8B93A1] block text-[11px] font-medium">2. AI suggested</span>
             {caseData.recommended_strategy ? (
-              <p className="font-mono text-emerald-400 font-medium">
+              <p className="font-mono text-[#2DBE8F] font-medium">
                 {caseData.recommended_strategy}
               </p>
             ) : (
-              <p className="text-slate-500 italic text-xs">
+              <p className="text-[#8B93A1] italic text-xs">
                 Pending diagnosis
               </p>
             )}
           </div>
 
-          <div className="p-3.5 rounded border border-slate-800/80 bg-slate-950/60 space-y-1">
-            <span className="text-slate-500 block text-[11px] font-medium">3. Policy decision</span>
+          <div className="p-3.5 rounded border border-[#262B33] bg-[#0B0D10]/60 space-y-1">
+            <span className="text-[#8B93A1] block text-[11px] font-medium">3. Policy decision</span>
             {policyOutcome ? (
               <div className="flex items-center gap-2">
                 <StatusBadge status={policyOutcome} size="sm" />
-                <span className="font-mono text-slate-200">
+                <span className="font-mono text-[#ECEFF3]/80">
                   {caseData.policy_evaluation?.approved_strategy || caseData.recommended_strategy || '—'}
                 </span>
               </div>
             ) : (
-              <p className="text-slate-500 italic text-xs">
+              <p className="text-[#8B93A1] italic text-xs">
                 Awaiting policy evaluation
               </p>
             )}
@@ -329,37 +329,37 @@ export const CaseView: React.FC<CaseViewProps> = ({
         </div>
 
         {caseData.policy_evaluation?.reasons && caseData.policy_evaluation.reasons.length > 0 && (
-          <div className="p-3 rounded border border-slate-800 bg-slate-950/40 text-xs text-slate-400 font-sans">
-            <span className="text-slate-500 font-medium">Policy reason: </span>
+          <div className="p-3 rounded border border-[#262B33] bg-[#0B0D10]/40 text-xs text-[#8B93A1] font-sans">
+            <span className="text-[#8B93A1] font-medium">Policy reason: </span>
             {caseData.policy_evaluation.reasons[0]}
           </div>
         )}
       </div>
 
       {/* SECTION 2: RECOVERY RESULT */}
-      <div className="rounded-lg border border-slate-800 bg-slate-900/30 p-5">
-        <h2 className="text-xs font-semibold text-white uppercase tracking-wider font-sans mb-3">
+      <div className="rounded-lg border border-[#262B33] bg-[#14171C]/80 p-5">
+        <h2 className="text-xs font-semibold text-[#ECEFF3] uppercase tracking-wider font-heading mb-3">
           Recovery result
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div className="space-y-0.5">
-            <span className="text-slate-500 block">Action taken</span>
-            <span className="font-sans text-sm font-medium text-white block">
+            <span className="text-[#8B93A1] block">Action taken</span>
+            <span className="font-sans text-sm font-medium text-[#ECEFF3] block">
               {getActionLabel()}
             </span>
           </div>
 
           <div className="space-y-0.5">
-            <span className="text-slate-500 block">Gateway verification</span>
-            <span className="font-sans text-sm font-medium text-slate-300 block">
+            <span className="text-[#8B93A1] block">Gateway verification</span>
+            <span className="font-sans text-sm font-medium text-[#ECEFF3]/80 block">
               {getVerificationLabel()}
             </span>
           </div>
 
           <div className="space-y-0.5">
-            <span className="text-slate-500 block">Recovered amount</span>
-            <span className="font-mono text-sm font-semibold text-emerald-400 block">
+            <span className="text-[#8B93A1] block">Recovered amount</span>
+            <span className="font-mono text-sm font-semibold text-[#2DBE8F] block">
               {isRecovered ? formatCurrency(caseData.verified_recovered_amount) : '₹0.00'}
             </span>
           </div>
@@ -367,17 +367,17 @@ export const CaseView: React.FC<CaseViewProps> = ({
       </div>
 
       {/* SECTION 3: TECHNICAL DETAILS (COLLAPSIBLE) */}
-      <div className="rounded-lg border border-slate-800 bg-slate-900/30 overflow-hidden">
+      <div className="rounded-lg border border-[#262B33] bg-[#14171C]/80 overflow-hidden">
         <button
           onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-          className="w-full flex items-center justify-between p-4 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-900/50 transition-colors cursor-pointer font-sans"
+          className="w-full flex items-center justify-between p-4 text-xs font-medium text-[#8B93A1] hover:text-[#ECEFF3] hover:bg-[#14171C] transition-colors cursor-pointer font-sans"
         >
           <span>{showTechnicalDetails ? 'Hide decision details' : 'View decision details'}</span>
-          {showTechnicalDetails ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+          {showTechnicalDetails ? <ChevronUp className="w-4 h-4 text-[#8B93A1]" /> : <ChevronDown className="w-4 h-4 text-[#8B93A1]" />}
         </button>
 
         {showTechnicalDetails && (
-          <div className="border-t border-slate-800 p-5 space-y-6">
+          <div className="border-t border-[#262B33] p-5 space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <DecisionTimeline
                 caseData={caseData}
@@ -405,20 +405,20 @@ export const CaseView: React.FC<CaseViewProps> = ({
       </div>
 
       {/* SECTION 4: ACTIVITY & AUDIT TRAIL */}
-      <div className="rounded-lg border border-slate-800 bg-slate-900/30 overflow-hidden">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+      <div className="rounded-lg border border-[#262B33] bg-[#14171C]/80 overflow-hidden">
+        <div className="p-4 border-b border-[#262B33] flex items-center justify-between">
           <div>
-            <h2 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
+            <h2 className="text-xs font-semibold text-[#ECEFF3] uppercase tracking-wider font-heading">
               Activity ({auditTrail.length} events)
             </h2>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-[#8B93A1] mt-0.5">
               Chronological append-only recovery timeline
             </p>
           </div>
 
           <button
             onClick={() => setShowFullAuditLog(!showFullAuditLog)}
-            className="text-xs text-slate-400 hover:text-white font-sans flex items-center gap-1 cursor-pointer"
+            className="text-xs text-[#8B93A1] hover:text-[#ECEFF3] font-sans flex items-center gap-1 cursor-pointer"
           >
             {showFullAuditLog ? 'Collapse audit log' : 'View full audit log'}
             {showFullAuditLog ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -426,17 +426,17 @@ export const CaseView: React.FC<CaseViewProps> = ({
         </div>
 
         {/* Clean Activity Summary (Always Visible) */}
-        <div className="divide-y divide-slate-800/60 text-xs font-sans">
+        <div className="divide-y divide-[#262B33]/60 text-xs font-sans">
           {auditTrail.slice(0, 5).map((entry, idx) => (
-            <div key={entry.id || idx} className="p-3 flex items-center justify-between hover:bg-slate-800/20">
+            <div key={entry.id || idx} className="p-3 flex items-center justify-between hover:bg-[#262B33]/20">
               <div className="flex items-center gap-3">
-                <span className="font-mono text-slate-500 text-[11px]">
+                <span className="font-mono text-[#8B93A1] text-[11px]">
                   {new Date(entry.event_timestamp).toLocaleTimeString()}
                 </span>
-                <span className="font-mono text-slate-200 font-medium">
+                <span className="font-mono text-[#ECEFF3]/80 font-medium">
                   {entry.event_type}
                 </span>
-                <span className="text-slate-400 text-[11px]">
+                <span className="text-[#8B93A1] text-[11px]">
                   by {entry.actor}
                 </span>
               </div>
@@ -444,7 +444,7 @@ export const CaseView: React.FC<CaseViewProps> = ({
                 {entry.policy_outcome ? (
                   <StatusBadge status={entry.policy_outcome} size="sm" />
                 ) : (
-                  <span className="text-slate-400 text-[11px]">
+                  <span className="text-[#8B93A1] text-[11px]">
                     {entry.new_status || '—'}
                   </span>
                 )}
@@ -455,7 +455,7 @@ export const CaseView: React.FC<CaseViewProps> = ({
 
         {/* Full Audit Log (Expands upon request) */}
         {showFullAuditLog && (
-          <div className="border-t border-slate-800">
+          <div className="border-t border-[#262B33]">
             <AuditTimeline auditTrail={auditTrail} />
           </div>
         )}
