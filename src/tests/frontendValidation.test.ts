@@ -297,6 +297,18 @@ export function runFrontendValidationTests(): { total: number; passed: number; f
     }
   });
 
+  // 16. Dynamic Gateway Status Badge in DashboardShell
+  test('Gateway Status Badge: Driven by health.razorpay_configured, not hardcoded string', () => {
+    const dsPath = path.resolve(srcDir, 'components/DashboardShell.tsx');
+    const dsContent = fs.readFileSync(dsPath, 'utf-8');
+    if (!dsContent.includes('health.razorpay_configured')) {
+      throw new Error('DashboardShell.tsx must check health.razorpay_configured for gateway badge');
+    }
+    if (!dsContent.includes('Mocked Gateway')) {
+      throw new Error('DashboardShell.tsx must display honest unconfigured gateway label when razorpay_configured is false');
+    }
+  });
+
   const passed = results.filter((r) => r.passed).length;
   const failed = results.filter((r) => !r.passed).length;
 

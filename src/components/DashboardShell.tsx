@@ -88,16 +88,38 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
             {/* Right Side: Gateway & API status */}
             <div className="flex items-center gap-3 text-xs">
-              <span className="px-2 py-0.5 rounded text-[11px] font-sans font-medium bg-slate-900 border border-slate-800 text-slate-400">
-                Razorpay Test Mode
+              <span
+                className={`px-2 py-0.5 rounded text-[11px] font-sans font-medium border transition-colors ${
+                  !health || healthError
+                    ? 'bg-slate-900/60 border-slate-800 text-slate-500'
+                    : health.razorpay_configured
+                    ? 'bg-slate-900 border-slate-800 text-slate-300'
+                    : 'bg-amber-500/10 border-amber-500/20 text-amber-300'
+                }`}
+              >
+                {!health || healthError
+                  ? 'Gateway: Checking...'
+                  : health.razorpay_configured
+                  ? 'Razorpay Test Mode'
+                  : 'Mocked Gateway (No Keys)'}
               </span>
               <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
-                    healthError ? 'bg-rose-500' : 'bg-emerald-400'
+                    healthError
+                      ? 'bg-rose-500'
+                      : !health
+                      ? 'bg-slate-500 animate-pulse'
+                      : 'bg-emerald-400'
                   }`}
                 />
-                <span>{healthError ? 'API Disconnected' : 'API Connected'}</span>
+                <span>
+                  {healthError
+                    ? 'API Disconnected'
+                    : !health
+                    ? 'Connecting...'
+                    : 'API Connected'}
+                </span>
               </div>
             </div>
           </div>

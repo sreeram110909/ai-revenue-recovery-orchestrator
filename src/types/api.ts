@@ -215,4 +215,8 @@ export interface HealthCheckResponse {
   status: string;
   service: string;
   version: string;
+  environment?: string;
+  database?: string;
+  razorpay_configured?: boolean;
+  gemini_configured?: boolean;
 }
