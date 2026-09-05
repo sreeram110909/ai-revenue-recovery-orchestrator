@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: ai-revenue-recovery-orchestrator
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: "npm install && npm run build && pip install -r requirements.txt"
+    startCommand: "PYTHONPATH=backend uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: ENVIRONMENT
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false

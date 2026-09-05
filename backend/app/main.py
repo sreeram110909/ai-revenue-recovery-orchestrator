@@ -109,3 +109,30 @@ async def health_check():
         "razorpay_configured": settings.has_razorpay_credentials,
         "gemini_configured": settings.has_gemini_credentials,
     }
+
+
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Static Files & SPA Frontend Serving (when dist/ is built)
+dist_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "dist"))
+if os.path.exists(dist_path):
+    assets_path = os.path.join(dist_path, "assets")
+    if os.path.exists(assets_path):
+        app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        # Allow API docs / OpenAPI schema
+        if full_path in ("docs", "redoc", "openapi.json"):
+            return None
+        file_path = os.path.join(dist_path, full_path)
+        if full_path and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        index_file = os.path.join(dist_path, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        return {"error": "Frontend build not found"}
+
+
